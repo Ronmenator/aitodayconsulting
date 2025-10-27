@@ -156,41 +156,18 @@ fadeInElements.forEach(element => {
 // Contact Form Handling
 // ===========================
 const contactForm = document.getElementById('contactForm');
+const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+const isEmailJsConfigured = [EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY]
+    .every((value) => value && !value.includes('YOUR_'));
+let feedbackStylesInjected = false;
 
-contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    // Get form data
-    const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        company: document.getElementById('company').value,
-        message: document.getElementById('message').value
-    };
-    
-    // Here you would typically send the form data to a server
-    // For now, we'll just show a success message
-    
-    // Create success message
-    const successMessage = document.createElement('div');
-    successMessage.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-        padding: 1.5rem 2rem;
-        border-radius: 10px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-    `;
-    successMessage.innerHTML = `
-        <strong>Message Sent!</strong><br>
-        Thank you for your interest. We'll be in touch soon.
-    `;
-    
-    // Add animation
+function injectFeedbackStyles() {
+    if (feedbackStylesInjected) {
+        return;
+    }
+
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideIn {
@@ -215,37 +192,126 @@ contactForm.addEventListener('submit', (e) => {
         }
     `;
     document.head.appendChild(style);
-    
-    document.body.appendChild(successMessage);
-    
-    // Remove message after 5 seconds
+    feedbackStylesInjected = true;
+}
+
+function showFormFeedback({ html, gradient }) {
+    injectFeedbackStyles();
+
+    const message = document.createElement('div');
+    message.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${gradient};
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    message.innerHTML = html;
+    document.body.appendChild(message);
+
     setTimeout(() => {
-        successMessage.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => {
-            document.body.removeChild(successMessage);
-            document.head.removeChild(style);
-        }, 300);
+        message.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => message.remove(), 300);
     }, 5000);
-    
-    // Reset form
-    contactForm.reset();
-    
-    // In a real implementation, you would send this data to your server:
-    // fetch('/api/contact', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(formData)
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     // Show success message
-    // })
-    // .catch(error => {
-    //     // Show error message
-    // });
-});
+}
+
+if (typeof emailjs !== 'undefined') {
+    if (isEmailJsConfigured) {
+        emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    } else {
+        console.warn('EmailJS SDK loaded, but credentials are still placeholders. Update service, template, and public key IDs before enabling submissions.');
+    }
+} else {
+    console.warn('EmailJS SDK not loaded. Contact form submissions are disabled until the SDK is available.');
+}
+
+if (contactForm) {
+    contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            company: document.getElementById('company').value,
+            message: document.getElementById('message').value
+        };
+
+        if (!isEmailJsConfigured) {
+            console.warn('EmailJS credentials are not configured. Message not sent.');
+            showFormFeedback({
+                html: `
+                    <strong>Message Not Sent</strong><br>
+                    Please configure your EmailJS service, template, and public key before submitting.
+                `.trim(),
+                gradient: 'linear-gradient(135deg, #ef4444, #dc2626)'
+            });
+            return;
+        }
+
+        if (typeof emailjs === 'undefined') {
+            console.error('EmailJS SDK not available. Message not sent.');
+            showFormFeedback({
+                html: `
+                    <strong>Message Not Sent</strong><br>
+                    Unable to send your message right now. Please try again later.
+                `.trim(),
+                gradient: 'linear-gradient(135deg, #ef4444, #dc2626)'
+            });
+            return;
+        }
+        
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            from_name: formData.name,
+            from_email: formData.email,
+            company: formData.company,
+            message: formData.message
+        }, EMAILJS_PUBLIC_KEY)
+        .then((response) => {
+            console.log('Email sent successfully:', response);
+            showFormFeedback({
+                html: `
+                    <strong>Message Sent!</strong><br>
+                    Thank you for your interest. We'll be in touch soon.
+                `.trim(),
+                gradient: 'linear-gradient(135deg, #10b981, #059669)'
+            });
+            contactForm.reset();
+        })
+        .catch((error) => {
+            console.error('Email failed to send:', error);
+            showFormFeedback({
+                html: `
+                    <strong>Message Not Sent</strong><br>
+                    Failed to send message. Please try again later.
+                `.trim(),
+                gradient: 'linear-gradient(135deg, #ef4444, #dc2626)'
+            });
+        });
+        
+        // In a real implementation, you would send this data to your server:
+        // fetch('/api/contact', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify(formData)
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     // Show success message
+        // })
+        // .catch(error => {
+        //     // Show error message
+        // });
+    });
+} else {
+    console.warn('Contact form not found on the page. Skip binding submit handler.');
+}
 
 // ===========================
 // Scroll to Top on Logo Click
@@ -361,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Preload critical images if any
     // This is where you'd preload hero images or important graphics
     
-    console.log('Ronnie Barnard AI Consulting website loaded successfully');
+console.log('AI Today Consulting website loaded successfully');
 });
 
 // ===========================

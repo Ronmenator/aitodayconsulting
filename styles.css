@@ -91,17 +91,11 @@ body {
     color: var(--dark-text-primary);
 }
 
-.logo {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 1rem;
+.logo-mark {
+    width: 75px;
+    height: 75px;
+    object-fit: contain;
+    display: block;
 }
 
 .nav-toggle {
@@ -260,6 +254,49 @@ body {
     justify-content: center;
     flex-wrap: wrap;
     margin-bottom: 4rem;
+}
+
+.hero-buttons .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    text-align: left;
+    flex-wrap: wrap;
+}
+
+.hero-buttons .cta-icon {
+    font-size: 1.35rem;
+}
+
+.hero-buttons .cta-text {
+    font-weight: 600;
+}
+
+.hero-buttons .cta-arrow {
+    font-size: 0.95rem;
+}
+
+.hero-alt-lines {
+    margin: 2.5rem auto 0;
+    display: grid;
+    gap: 0.75rem;
+    max-width: 820px;
+}
+
+.hero-alt-lines .alt-line {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.65);
+    color: var(--dark-text-primary);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: clamp(0.85rem, 1.25vw, 0.95rem);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
 }
 
 .btn {
@@ -493,6 +530,20 @@ body {
     gap: 2rem;
 }
 
+.brand-visual {
+    background: var(--dark-bg-tertiary);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.brand-visual img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 .company-glance {
     background: var(--dark-bg-tertiary);
     padding: 2rem;
@@ -557,6 +608,17 @@ body {
     border-left: 3px solid var(--primary-color);
     margin-top: 1.5rem !important;
     margin-bottom: 1rem !important;
+}
+
+.mission-signature {
+    font-style: italic;
+    color: var(--accent-color) !important;
+    text-align: right;
+    font-size: 1rem !important;
+    margin-top: 1rem !important;
+    margin-bottom: 0 !important;
+    font-weight: 500;
+    padding-right: 1.5rem;
 }
 
 .signature {
