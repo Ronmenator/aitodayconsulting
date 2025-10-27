@@ -102,7 +102,35 @@ const observerOptions = {
     rootMargin: '0px 0px -50px 0px'
 };
 
-const fadeInElements = document.querySelectorAll('.service-card, .problem-card, .outcome-card, .why-card, .timeline-item, .engagement-card');
+// Special handling for problem cards with staggered animation
+const problemCards = document.querySelectorAll('.problem-card');
+const problemObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+            const cards = Array.from(entry.target.parentElement.children);
+            const index = cards.indexOf(entry.target);
+            
+            setTimeout(() => {
+                entry.target.classList.add('animate-in');
+                
+                // Animate the icon with a bounce
+                const icon = entry.target.querySelector('.problem-icon');
+                if (icon) {
+                    icon.style.animation = 'iconBounce 0.6s ease-out';
+                }
+            }, index * 150);
+            
+            problemObserver.unobserve(entry.target);
+        }
+    });
+}, observerOptions);
+
+problemCards.forEach(card => {
+    problemObserver.observe(card);
+});
+
+// General fade-in elements
+const fadeInElements = document.querySelectorAll('.service-card, .outcome-card, .why-card, .timeline-item, .engagement-card');
 
 const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry, index) => {
@@ -298,6 +326,29 @@ const statsObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.stat').forEach(stat => {
     statsObserver.observe(stat);
+});
+
+// ===========================
+// FAQ Accordion
+// ===========================
+const faqItems = document.querySelectorAll('.faq-item');
+
+faqItems.forEach(item => {
+    const question = item.querySelector('.faq-question');
+    
+    question.addEventListener('click', () => {
+        // Close other items
+        const isActive = item.classList.contains('active');
+        
+        faqItems.forEach(otherItem => {
+            otherItem.classList.remove('active');
+        });
+        
+        // Toggle current item
+        if (!isActive) {
+            item.classList.add('active');
+        }
+    });
 });
 
 // ===========================
